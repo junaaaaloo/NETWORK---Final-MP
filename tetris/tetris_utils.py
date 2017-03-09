@@ -1,0 +1,10 @@
+class colors:
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (102, 178, 142)
+    VIOLET = (238,130,238)
+    DARKBLUE = (0, 0, 255)
+    DANDELION = (153, 153, 0)
+    YELLOW = (255, 255, 0)
