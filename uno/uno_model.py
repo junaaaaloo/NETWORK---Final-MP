@@ -38,7 +38,7 @@ class special_cards:
         players.dequeue()
 
     def choose_color(game, chosen_color):
-        game.color = chosen_color
+        game.card_q.queue[0].color = chosen_color
 
     effects = {"d2": drawTwo,
                "d4": drawFour,
@@ -64,9 +64,10 @@ class special_cards:
 
     def applyEffect (self, chosen, game):
         if self.effect == "d2":
-            special_cards.drawTwo(game.players.next_player, game.deck)
+            special_cards.drawTwo(game.players.next_player(), game.deck)
         elif self.effect == "d4":
-            special_cards.drawFour(game.players.next_player, game.deck)
+            special_cards.choose_color(game, chosen)
+            special_cards.drawFour(game.players.next_player(), game.deck)
         elif self.effect == "rev":
             special_cards.reverse(game.players)
         elif self.effect == "skip":
@@ -79,7 +80,9 @@ class special_cards:
             if (other.color == self.color):
                 return True
         else:
-            if(other.color == self.color):
+            if (other.color == "BLACK"):
+                return True
+            elif(other.color == self.color):
                 return True
             elif (other.effect == self.effect):
                 return True
@@ -166,7 +169,7 @@ class card_queue:
     def push (self, card):
         self.queue.insert(0, card)
 
-    def returnToDeck (self, card):
+    def returnToDeck (self, card, deck):
         if(deck.size() == 0):
             returnTo = self.queue[1:len(self.queue)]
             deck.push(card)
@@ -179,7 +182,13 @@ class user:
         self.cards = cards
         self.name = name
         self.uno = False
-        self.win = True
+        self.win = False
+
+    def noPlayableCard (self, cardQ):
+        for card in self.cards:
+            if cardQ.compareTop(card):
+                return False
+        return True
 
     def unoQ (self):
         return len(self.cards) == 1
@@ -206,14 +215,14 @@ class user:
         if(self.win):
             return True
         if cards.compareTop (self.cards[i]):
-            if len(cards) == 0:
+            if len(cards.queue) == 0:
                 self.win = True
                 game.players.players.remove(self)
 
             cards.push(self.cards.pop(i))
 
-            if(isinstance(cards[0], special_cards)):
-                if(cards[0].effect == "color"):
+            if(isinstance(cards.queue[0], special_cards)):
+                if(cards.queue[0].effect == "color" or cards.queue[0].effect == "d4"):
                     j = 1
 
                     for color in normal_cards.colors:
@@ -223,9 +232,9 @@ class user:
                     col = input ("Pick a color: ")
                     col = int(col) - 1
 
-                    cards[0].applyEffect(normal_cards.colors[col], game)
+                    cards.queue[0].applyEffect(normal_cards.colors[col], game)
                 else:
-                    cards[0].applyEffect(None, game)
+                    cards.queue[0].applyEffect(None, game)
             return True
         else:
             return False
@@ -235,6 +244,7 @@ class game:
         self.deck = deck()
         self.players = player_queue()
         self.card_q = card_queue()
+        self.winners = list()
 
         for name in names:
             self.players.insert(user(list(), name))
@@ -252,6 +262,7 @@ class game:
 
         print ("Users in game: ")
         i = 1
+
         for player in self.players.players:
             print(i, " ", player.name)
             i += 1
@@ -268,18 +279,27 @@ class game:
                 print(i, " ", card)
                 i += 1
 
-            while not finish:
-                opt = input("Pick a card: ")
+            if self.players.curr_player().noPlayableCard(self.card_q):
+                card = self.deck.pop()
+                print("No playable card! Drawing a card")
+                print("Draw a ", card)
+                self.players.curr_player().draw(card)
+                if self.players.curr_player().noPlayableCard(self.card_q):
+                    print("PASS! Still no playable card")
+                else:
+                    print("SUCCESS! played a card!")
+                    self.players.curr_player().playCard(self.card_q, len(self.players.curr_player().cards) - 1, game)
+            else:
+                while not finish:
+                    opt = input("Pick a card: ")
 
-                try:
                     opt = int(opt) - 1
                     finish = (self.players.curr_player().playCard(self.card_q, opt, game))
-                except Exception:
-                    print ("Invalid Input")
 
-                if finish:
-                    print("Next player!")
-                    self.players.dequeue()
+                    if finish:
+                        print("Next player!")
+
+            self.players.dequeue()
 
             for player in self.players.players:
                 if player.unoQ():
@@ -287,11 +307,20 @@ class game:
 
             for player in self.players.players:
                 if len(player.cards) == 0:
+                    print(player.name+ " has won!")
+                    self.winners.append(player)
                     self.players.players.remove(player)
 
             if len(self.players.players) == 1:
                 gameOver = True
+            i = 1
 
+        self.winners.append(self.players.players[0])
+
+        print("Ranking: ")
+        for player in self.winners:
+            print(i, " ", player.name)
+            i += 1
 
 names = ["Mary", "John", "Moana"]
 game = game(names)
