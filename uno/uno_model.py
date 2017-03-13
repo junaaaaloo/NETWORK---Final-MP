@@ -5,7 +5,7 @@ class player_queue:
         self.players = list()
 
     def insert(self, player):
-        self.players.insert(0, player);
+        self.players.insert(0, player)
 
     def next_player (self):
         return self.players[1]
@@ -21,15 +21,50 @@ class player_queue:
         self.players = list(reversed(self.players))
 
 class special_cards:
-    def drawTwo(nextplayer, deck):
-        nextplayer.draw(deck.pop())
-        nextplayer.draw(deck.pop())
+    def drawTwo(players, deck):
+        draw = 2
 
-    def drawFour(nextplayer, deck):
-        nextplayer.draw(deck.pop())
-        nextplayer.draw(deck.pop())
-        nextplayer.draw(deck.pop())
-        nextplayer.draw(deck.pop())
+        while players.next_player().withPlusTwo():
+            draw += 2
+            print("CHAIN Draw ", draw)
+            for card in players.next_player().cards:
+                if(hasattr(card, "effect")):
+                    if (card.effect == "d2"):
+                        players.next_player().cards.remove(card)
+            players.dequeue()
+
+        print(players.next_player().name, " drawing ", draw, " cards!")
+        while draw != 0:
+            players.next_player().draw(deck.pop())
+            draw -= 1
+
+    def drawFour(players, deck, game):
+        draw = 4
+
+        while players.next_player().withPlusFour():
+            draw += 4
+            print("CHAIN Draw ", draw)
+            for card in players.next_player().cards:
+                if (hasattr(card, "effect")):
+                    if (card.effect == "d4"):
+                        players.next_player().cards.remove(card)
+            players.dequeue()
+
+        j = 1
+
+        for color in normal_cards.colors:
+            print(j, " ", color)
+            j += 1
+
+        col = input("Pick a color: ")
+        col = int(col) - 1
+
+        special_cards.choose_color(game, normal_cards.colors[col])
+        print(players.next_player().name, " drawing ", draw, " cards!")
+        print("CHOSEN COLOR: ", normal_cards.colors[col])
+        while draw != 0:
+            players.next_player().draw(deck.pop())
+            draw -= 1
 
     def reverse (players):
         players.reverse()
@@ -64,10 +99,10 @@ class special_cards:
 
     def applyEffect (self, chosen, game):
         if self.effect == "d2":
-            special_cards.drawTwo(game.players.next_player(), game.deck)
+            special_cards.drawTwo(game.players, game.deck)
         elif self.effect == "d4":
             special_cards.choose_color(game, chosen)
-            special_cards.drawFour(game.players.next_player(), game.deck)
+            special_cards.drawFour(game.players, game.deck, game)
         elif self.effect == "rev":
             special_cards.reverse(game.players)
         elif self.effect == "skip":
@@ -184,6 +219,20 @@ class user:
         self.uno = False
         self.win = False
 
+    def withPlusTwo (self):
+        for card in self.cards:
+            if hasattr(card, "effect"):
+                if card.effect == "d2":
+                    return True
+        return False
+
+    def withPlusFour (self):
+        for card in self.cards:
+            if hasattr(card, "effect"):
+                if card.effect == "d4":
+                    return True
+        return False
+
     def noPlayableCard (self, cardQ):
         for card in self.cards:
             if cardQ.compareTop(card):
@@ -233,6 +282,7 @@ class user:
                     col = int(col) - 1
 
                     cards.queue[0].applyEffect(normal_cards.colors[col], game)
+                    print("CHOSEN COLOR: ", normal_cards.colors[col])
                 else:
                     cards.queue[0].applyEffect(None, game)
             return True
@@ -289,21 +339,27 @@ class game:
                 else:
                     print("SUCCESS! played a card!")
                     self.players.curr_player().playCard(self.card_q, len(self.players.curr_player().cards) - 1, game)
+
             else:
                 while not finish:
                     opt = input("Pick a card: ")
 
                     opt = int(opt) - 1
+                    card = self.players.curr_player().cards[0]
                     finish = (self.players.curr_player().playCard(self.card_q, opt, game))
 
                     if finish:
                         print("Next player!")
 
-            self.players.dequeue()
+            if hasattr(card, "effect"):
+                if card.effect != "rev":
+                    self.players.dequeue()
+            else:
+                self.players.dequeue()
 
             for player in self.players.players:
-                if player.unoQ():
-                    print("UNO!")
+                if player.unoQ() and not player.uno:
+                    print(player.name + " UNO!")
 
             for player in self.players.players:
                 if len(player.cards) == 0:
