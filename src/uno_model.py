@@ -271,7 +271,7 @@ class user:
             cards.push(self.cards.pop(i))
 
             if(isinstance(cards.queue[0], special_cards)):
-                if(cards.queue[0].effect == "color" or cards.queue[0].effect == "d4"):
+                if(cards.queue[0].effect == "color"):
                     j = 1
 
                     for color in normal_cards.colors:
@@ -377,7 +377,3 @@ class game:
         for player in self.winners:
             print(i, " ", player.name)
             i += 1
-
-names = ["Mary", "John", "Moana"]
-game = game(names)
-game.console_start()

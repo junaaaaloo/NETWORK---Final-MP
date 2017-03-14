@@ -1,0 +1,9 @@
+    if data == "":
+        data = message
+        data = data.encode()
+        s.sendto(data, server)
+
+        tlock.acquire()
+        message = input("Option: ")
+        tlock.release()
+        time.sleep(0.2)
