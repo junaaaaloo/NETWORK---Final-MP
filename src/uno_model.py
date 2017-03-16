@@ -3,6 +3,7 @@ import random
 class player_queue:
     def __init__ (self):
         self.players = list()
+        self.address = None
 
     def insert(self, player):
         self.players.insert(0, player)

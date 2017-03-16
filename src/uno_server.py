@@ -1,5 +1,6 @@
 import socket
 import time
+import random
 from uno_model import *
 
 host = '127.0.0.1'
@@ -34,14 +35,55 @@ while not names:
     except:
         pass
 
+data = 'Y'
+data = data.encode('ascii')
 
-i = 0
+i = 1
+print("PLAYERS: ")
 for player in player_addresses:
-    print(i, player, namesList[i - 1])
+    print(i, " ", player, " ", namesList[i - 1])
+    s.sendto(data, player)
     i += 1
 
-for i in player_addresses:
-    print(i)
+deck = deck()
+player_queue = player_queue()
+card_queue = card_queue()
+winners = []
 
+i = 0
+for name in namesList:
+    player = user(list(), name)
+    player.address = player_addresses[i]
+    player_queue.insert(player)
+    i += 1
+
+i = 1
+msg = "";
+random.shuffle(player_queue.players)
+for player in player_queue.players:
+    player.init_draw(deck)
+    msg += str(i) + " " + player.name + "\n"
+    i += 1
+
+print("")
+print(msg)
+print("")
+
+msg = msg.encode('ascii')
+
+for player in player_queue.players:
+    s.sendto(msg, player.address)
+
+
+gameOver = False
+while not gameOver:
+    opt = input("Input to continue game (Y/N): ")
+    data = opt.encode('ascii')
+
+    if opt != "Y":
+        gameOver = True
+
+    for player in player_addresses:
+        s.sendto(data, player)
 s.close()
 
