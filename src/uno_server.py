@@ -64,9 +64,11 @@ for player in player_queue.players:
 print("UNO Game is starting!")
 
 card_queue.push(deck.pop())
+
 gameOver = False
 while not gameOver:
-    print("\nUSER: ", player_queue.curr_player().name)
+    print("CURRENT USER: ", player_queue.curr_player().name)
+    print("CURRENT CARD: " + str(card_queue.queue[0]) + "\n")
 
     msg = "CURRENT CARD: " + str(card_queue.queue[0]) + "\n"
 
@@ -81,7 +83,7 @@ while not gameOver:
             s.sendto(msg, player.address)
 
         else:
-            msg = player_queue.curr_player().name + "'S TURN"
+            msg = player_queue.curr_player().name + "'S Turn. Please wait for your turn!"
             msg = msg.encode('ascii')
             s.sendto(msg, player.address)
 
@@ -101,8 +103,8 @@ while not gameOver:
             msg = "SUCCESS! played a card!"
             msg = msg.encode('ascii')
             s.sendto(msg, player_queue.curr_player().address)
-            if (isinstance(card_queue.queue[0], special_cards)):
-                if (card_queue.queue[0].effect == "color"):
+            if (isinstance(card, special_cards)):
+                if (card.effect == "color"):
                     mess = "color"
                     mess = mess.encode('ascii')
                     s.sendto(mess, player_queue.curr_player().address)
@@ -111,32 +113,33 @@ while not gameOver:
                         try:
                             color, addr = s.recvfrom(4096)
                             color = color.decode()
+                            color = int(color)
                             receiving = False
                         except:
                             pass
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, normal_cards[color], opt))
-                elif (card_queue.queue[0].effect == "d4"):
-                    mess = "color"
-                    mess = mess.encode('ascii')
-                    s.sendto(mess, player_queue.curr_player().address)
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, normal_cards.colors[color-1], len(player_queue.curr_player().cards) - 1))
+                elif (card.effect == "d4"):
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, len(player_queue.curr_player().cards) - 1))
                     mess = "color"
                     mess = mess.encode('ascii')
                     s.sendto(mess, player_queue.curr_player().address)
                     receiving = True
                     while receiving:
-                        color, addr = s.recvfrom(4096)
-                        color = int(color)
-                        receiving = False
-                    if finish:
-                        special_cards.choose_color(card_queue, normal_cards.colors[color])
+                        try:
+                            color, addr = s.recvfrom(4096)
+                            color = color.decode()
+                            color = int(color)
+                            receiving = False
+                        except:
+                            pass
+                    special_cards.choose_color(card_queue, normal_cards.colors[color - 1])
                 else:
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, len(player_queue.curr_player().cards) - 1))
             else:
-                finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, len(player_queue.curr_player().cards) - 1))
     else:
-        finish = False
-        while not finish:
+        cardInput = False
+        while not cardInput:
             receiving = True
 
             opt = "input"
@@ -153,10 +156,11 @@ while not gameOver:
                 except:
                     pass
 
-            color = None
+            color = 0
+            currentCard = player_queue.curr_player().cards[opt]
 
-            if (isinstance(card_queue.queue[0], special_cards)):
-                if (card_queue.queue[0].effect == "color"):
+            if (isinstance(currentCard, special_cards)):
+                if (currentCard.effect == "color"):
                     mess = "color"
                     mess = mess.encode('ascii')
                     s.sendto(mess, player_queue.curr_player().address)
@@ -169,12 +173,9 @@ while not gameOver:
                             receiving = False
                         except:
                             pass
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, normal_cards[color], opt))
-                elif (card_queue.queue[0].effect == "d4"):
-                    mess = "color"
-                    mess = mess.encode('ascii')
-                    s.sendto(mess, player_queue.curr_player().address)
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, normal_cards.colors[color - 1], opt))
+                elif (currentCard.effect == "d4"):
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
                     mess = "color"
                     mess = mess.encode('ascii')
                     s.sendto(mess, player_queue.curr_player().address)
@@ -187,19 +188,17 @@ while not gameOver:
                             receiving = False
                         except:
                             pass
-                    if finish:
-                        special_cards.choose_color(card_queue, normal_cards.colors[color])
+                    special_cards.choose_color(card_queue, normal_cards.colors[color-1])
                 else:
-                    finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                    cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
             else:
-                finish = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
+                cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
 
-            if finish:
+            if cardInput:
                 mess = "Next player!"
                 mess = mess.encode('ascii')
                 s.sendto(mess, player_queue.curr_player().address)
 
-            print(str(card))
     if hasattr (card, "effect"):
         if card.effect != "rev":
             player_queue.dequeue()
@@ -215,6 +214,7 @@ while not gameOver:
     for player in player_queue.players:
         if len(player.cards) == 0:
             msg = player.name + " has won!"
+            msg = msg.encode('ascii')
             s.sendto(msg, player.address)
             player_queue.players.remove(player)
             winners.append(player)
@@ -222,10 +222,7 @@ while not gameOver:
     if len(player_queue.players) == 1:
         gameOver = True
 
-    if gameOver:
-        opt = 'N'
-    else:
-        opt = 'Y'
+    opt = 'continue'
 
     opt = opt.encode('ascii')
     for player in player_queue.players:
@@ -233,7 +230,8 @@ while not gameOver:
 
 winners.append(player_queue.players[0])
 
-print("Ranking:")
+
+print("\nRanking:")
 
 i = 1
 
@@ -242,7 +240,13 @@ for player in winners:
     msg = "Your ranking: " + str(i)
     msg = msg.encode('ascii')
     s.sendto(msg, player.address)
+
+    opt = 'quit'
+    opt = opt.encode('ascii')
+    s.sendto(opt, player.address)
+
     i += 1
+
 
 s.close()
 

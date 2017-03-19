@@ -1,6 +1,6 @@
 from tkinter import *
 
-class Main (Tk):
+class Server (Tk):
     def __init__ (self):
         Tk.__init__(self)
         #self.wm_iconbitmap("") #for icons
@@ -9,5 +9,5 @@ class Main (Tk):
         self.resizable(0, 0)
 
 
-main = Main ()
+main = Server ()
 main.mainloop()

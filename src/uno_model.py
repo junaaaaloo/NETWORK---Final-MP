@@ -314,7 +314,6 @@ class game:
                     print("PASS! Still no playable card")
                 else:
                     print("SUCCESS! played a card!")
-
                     self.players.curr_player().playCard(self.card_q, self.players, self.deck, len(self.players.curr_player().cards) - 1, game)
             else:
                 while not finish:

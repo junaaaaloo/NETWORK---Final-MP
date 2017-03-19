@@ -30,8 +30,8 @@ while waiting:
     except:
         pass
 
-gameOver = 'Y'
-while gameOver != 'N':
+game = True
+while game:
     try:
         data, addr = s.recvfrom(4096)
         gameOver = data.decode('ascii')
@@ -40,7 +40,7 @@ while gameOver != 'N':
             sending = True
             while sending:
                 try:
-                    gameOver = input("card -> ")
+                    gameOver = input("Card -> ")
                     gameOver = gameOver.encode()
                     s.sendto(gameOver, server)
                     sending = False
@@ -48,23 +48,24 @@ while gameOver != 'N':
                     print(e)
                     pass
         elif gameOver == "color":
-
             j = 1
+            print("\nColors: ")
             for color in normal_cards.colors:
                 print(j, " ", color)
                 j += 1
-
-            try:
-                col = input("Pick a color: ")
-                col = col.encode()
-                s.sendto(col, server)
-            except Exception as e:
-                print(e)
-                pass
-
-        elif gameOver == "Y":
-            pass
-        elif gameOver == "N":
+            sending = True
+            while sending:
+                try:
+                    col = input("Color -> ")
+                    col = col.encode()
+                    s.sendto(col, server)
+                    sending = False
+                except Exception as e:
+                    print(e)
+                    pass
+        elif gameOver == "quit":
+            game = False
+        elif gameOver == "continue":
             pass
         else:
             print("")
@@ -73,6 +74,5 @@ while gameOver != 'N':
     except Exception:
         pass
 
-print("Finished")
 s.close()
 
