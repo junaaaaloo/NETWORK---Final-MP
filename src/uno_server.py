@@ -75,6 +75,7 @@ while not gameOver:
     for player in player_queue.players:
         if (player.name == player_queue.curr_player().name):
             i = 1
+			
             for card in player_queue.curr_player().cards:
                 msg += str(i) + " " + str(card) + "\n"
                 i += 1
@@ -118,6 +119,10 @@ while not gameOver:
                         except:
                             pass
                     cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, normal_cards.colors[color-1], len(player_queue.curr_player().cards) - 1))
+                    mess = "CURRENT COLOR: " + str(normal_cards.colors[color-1])
+                    mess = mess.encode('ascii')
+                    s.sendto(mess, player_queue.curr_player().address)
+
                 elif (card.effect == "d4"):
                     cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, len(player_queue.curr_player().cards) - 1))
                     mess = "color"
@@ -133,6 +138,9 @@ while not gameOver:
                         except:
                             pass
                     special_cards.choose_color(card_queue, normal_cards.colors[color - 1])
+                    mess = "CURRENT COLOR: " + str(normal_cards.colors[color-1])
+                    mess = mess.encode('ascii')
+                    s.sendto(mess, player_queue.curr_player().address)
                 else:
                     cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, len(player_queue.curr_player().cards) - 1))
             else:
@@ -189,6 +197,9 @@ while not gameOver:
                         except:
                             pass
                     special_cards.choose_color(card_queue, normal_cards.colors[color-1])
+                    mess = "CURRENT COLOR: " + str(normal_cards.colors[color-1])
+                    mess = mess.encode('ascii')
+                    s.sendto(mess, player_queue.curr_player().address)
                 else:
                     cardInput = (player_queue.curr_player().playCard(card_queue, player_queue, deck, None, opt))
             else:
