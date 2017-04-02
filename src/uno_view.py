@@ -15,7 +15,7 @@ class Main (Tk):
             
 
         listCards = []
-        self.first = PhotoImage(file = 'C:\\Users\\Angel\\Documents\\2nd year - 2nd Term\\NETWORK\\NETWORK_S19-MP\\cards\\red_0.jpg')
+        self.first = PhotoImage(file = '../cards/red_0.jpg')
         self.first = self.first.subsample(2,2)
         listCards.append(self.first)
         self.sec = PhotoImage(file = 'C:\\Users\\Angel\\Documents\\2nd year - 2nd Term\\NETWORK\\NETWORK_S19-MP\\cards\\red_1.jpg')
